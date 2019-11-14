@@ -1,0 +1,28 @@
+import { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
+
+export default (appInfo: EggAppInfo) => {
+    const config={} as PowerPartial<EggAppConfig>;
+
+    // override config from framework / plugin
+    // use for cookie sign key, should change to your own and keep security
+    config.keys=appInfo.name+'_1573208286292_6599';
+
+    // add your egg config in here
+    config.middleware=[];
+
+    // add your special config in here
+    const bizConfig={
+        sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,
+        github: {
+            API: 'https://api.github.com/graphql',
+            ACCESS_TOKEN: 'b83be17fc50a2fb3a2b04308a8f64fdc12c1035a',
+            BLOG_REPOSITORY: ''
+        }
+    };
+
+    // the return config will combines to EggAppConfig
+    return {
+        ...config,
+        ...bizConfig,
+    };
+};
