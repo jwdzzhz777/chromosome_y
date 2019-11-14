@@ -1,5 +1,4 @@
 logs/
-npm-debug.log
 node_modules/
 coverage/
 .idea/
@@ -11,6 +10,11 @@ logs/
 *.lock
 *.js
 !.autod.conf.js
+
+npm-debug.log
+npm-error.log
+yarn-debug.log
+yarn-error.log
 
 app/**/*.js
 test/**/*.js
