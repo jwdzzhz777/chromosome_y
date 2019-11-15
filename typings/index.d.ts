@@ -17,7 +17,7 @@ declare global {
         constructor(message: string, data?: any);
     }
 
-    export class GitlabForbiddenError {
+    export class BadCredentials {
         constructor(message: string, data?: any);
     }
 
@@ -26,7 +26,7 @@ declare global {
             BadRequest: BadRequest;
             InternalServerError: InternalServerError;
             UnprocessableEntityError: UnprocessableEntityError;
-            GitlabForbiddenError: GitlabForbiddenError;
+            BadCredentials: GitlabForbiddenError;
         }
     }
 }
