@@ -18,6 +18,11 @@ global.BadRequest = class BadRequest extends BaseError {
     public name = 'bad request';
 };
 
+global.BadCredentials = class GitlabForbiddenError extends BaseError {
+    public status = 401;
+    public name = 'github Forbidden';
+};
+
 global.InternalServerError = class InternalServerError extends BaseError {
     public status = 500;
     public name = 'internal server error';
@@ -26,9 +31,4 @@ global.InternalServerError = class InternalServerError extends BaseError {
 global.UnprocessableEntityError = class UnprocessableEntityError extends BaseError {
     public status = 422;
     public name = 'unprocessable entity';
-};
-
-global.GitlabForbiddenError = class GitlabForbiddenError extends BaseError {
-    public status = 403;
-    public name = 'gitlab Forbidden';
 };
