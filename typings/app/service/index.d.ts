@@ -3,9 +3,11 @@
 
 import 'egg';
 import ExportGit from '../../../app/service/git';
+import ExportMain from '../../../app/service/main';
 
 declare module 'egg' {
   interface IService {
     git: ExportGit;
+    main: ExportMain;
   }
 }
