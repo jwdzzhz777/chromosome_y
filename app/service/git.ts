@@ -53,11 +53,18 @@ export default class GithubService extends Service {
             }
         });
 
-
-
         return { assigneeId, repositoryId, labelId, files };
     }
-
+    /**
+     * 创建一个 Issue
+     * @param  assigneeIds  指派给谁(id) 当然肯定是我自己
+     * @param  body         issue 内容
+     * @param  labelIds     标签 id 代表 article 的标签肯定要加
+     * @param  projectIds   暂时不需要 但是必填
+     * @param  repositoryId 所在仓库的id
+     * @param  title        标题
+     * @return              创建好的 Issue id
+     */
     async createIssue (
         assigneeIds: string,
         body: string,
@@ -66,7 +73,25 @@ export default class GithubService extends Service {
         repositoryId: string,
         title: string
     ) {
+        let data = await this.ctx.helper.graph({
+            mutation: `
+                createIssue(input:{
+                    assigneeIds: $assigneeIds!,
+                    body: $body,
+                    labelIds: $labelIds!,
+                    projectIds: $projectIds!,
+                    repositoryId: $repositoryId!,
+                    title: $title
+                }) {
+                    issue {
+                        id
+                    }
+                }
+            `,
+            variables: { ...arguments }
+        });
 
+        return data;
     }
 
     async updateIssue () {
