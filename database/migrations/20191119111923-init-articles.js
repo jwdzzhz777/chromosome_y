@@ -14,15 +14,15 @@ module.exports = {
                     allowNull: false,
                     defaultValue: Sequelize.UUIDV4,
                 },
-                issueId: {
+                issue_id: {
                     type: Sequelize.UUID,
                     unique: true,
                     allowNull: false,
                     defaultValue: Sequelize.UUIDV4,
                 },
                 title: Sequelize.STRING,
-                publishedAt: Sequelize.DATE,
-                updatedAt: Sequelize.DATE,
+                published_at: Sequelize.DATE,
+                issue_updated_at: Sequelize.DATE,
                 img: Sequelize.STRING
             },
             defaultOpt
