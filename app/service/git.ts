@@ -55,24 +55,28 @@ export default class GithubService extends Service {
 
         return { assigneeId, repositoryId, labelId, files };
     }
+    async getArticle() {
+
+    }
     /**
      * 创建一个 Issue
-     * @param  assigneeIds  指派给谁(id) 当然肯定是我自己
-     * @param  body         issue 内容
-     * @param  labelIds     标签 id 代表 article 的标签肯定要加
-     * @param  projectIds   暂时不需要 但是必填
-     * @param  repositoryId 所在仓库的id
-     * @param  title        标题
+     * @param  {object} input        变异的内容
+     * @param  {string} input.assigneeIds  指派给谁(id) 当然肯定是我自己
+     * @param  {string} input.body         issue 内容
+     * @param  {string[]} input.labelIds     标签 id 代表 article 的标签肯定要加
+     * @param  {string[]} input.projectIds   暂时不需要 但是必填
+     * @param  {string} input.repositoryId 所在仓库的id
+     * @param  {string} input.title        标题
      * @return              创建好的 Issue id
      */
-    async createIssue (
+    async createIssue (input: {
         assigneeIds: string,
         body: string,
         labelIds: string[],
         projectIds: string[],
         repositoryId: string,
         title: string
-    ) {
+    }) {
         let data = await this.ctx.helper.graph({
             mutation: `
                 createIssue(input:{
@@ -88,7 +92,7 @@ export default class GithubService extends Service {
                     }
                 }
             `,
-            variables: { ...arguments }
+            variables: input
         });
 
         return data;
@@ -133,7 +137,7 @@ export default class GithubService extends Service {
                 path: `${ARTICLES_PATH}/${fileName}`
             }
         });
-        console.log(new Date(pushedDate));
+
         return new Date(pushedDate);
     }
     async getIssues() {
@@ -185,5 +189,96 @@ export default class GithubService extends Service {
         });
 
         return data;
+    }
+    async associate(fileName: string, number: number) {
+        let { ARTICLES_PATH, ARTICLE_REF } = this.config.github;
+
+        // 先通过fileName获取 oid
+        // 自己处理报错
+        let result = await this.ctx.helper.graph({
+            query: `
+                query($name_of_repository: String!, $expression: String!, $number: Int!) {
+                    viewer {
+                        repository (name: $name_of_repository) {
+                            article: object (expression: $expression) {
+                                oid
+                            }
+                            issue (number: $number) {
+                                id
+                                title
+                            }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                'name_of_repository': this.config.github.BLOG_REPOSITORY,
+                expression: `${ARTICLE_REF}:${ARTICLES_PATH}/${fileName}`,
+                number
+            }
+        }, true);
+
+        if (!result.data) throw new InternalServerError('github 服务异常');
+
+        let { viewer: { repository: { article, issue } } } = result.data;
+
+        if (!issue) throw new InternalServerError('Issue不存在');
+        if (!article) throw new InternalServerError('article不存在');
+
+        // 通过 oid 查找数据库是否有记录该 oid 的东西
+        let fileData = await this.ctx.model.Articles.findOne({
+            where: { oid: article.oid },
+            attributes: [ 'id' ],
+            raw: true
+        });
+
+        // 通过 issueId 查找数据库是否有记录该 issueId 的东西
+        let issueData = await this.ctx.model.Articles.findOne({
+            where: { issueId: number },
+            attributes: [ 'id' ],
+            raw: true
+        });
+        /*
+        当都没有关联才可以进行关联
+        正常情况下不会出现一个关联一个没有关联
+         */
+        if (fileData === issueData === null) {
+            /** 拿到文件最后提交时间 */
+            let date = await this.getLastCommitDate(fileName);
+
+            await this.ctx.model.Articles.create({
+                oid: article.oid,
+                issueId: number,
+                title: issue.title,
+                publishedAt: date,
+                issueUpdatedAt: date
+            });
+        }
+    }
+    /**
+     * 通过 number 获得 Issue id
+     * @param  number Issue 的 number
+     * @return        id
+     */
+    async getIssueByNumber(number: number) {
+        let { viewer: { repository: { issue: { id } } } } = await this.ctx.helper.graph({
+            query: `
+                query($name_of_repository: String!, $number: Number!) {
+                    viewer {
+                        repository (name: $name_of_repository) {
+                            issue (number: $number) {
+                                id
+                            }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                'name_of_repository': this.config.github.BLOG_REPOSITORY,
+                number
+            }
+        });
+
+        return id;
     }
 }
