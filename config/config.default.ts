@@ -1,4 +1,4 @@
-import { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
+import { EggAppConfig, EggAppInfo, PowerPartial, Context } from 'egg';
 
 export default (appInfo: EggAppInfo) => {
     const config={} as PowerPartial<EggAppConfig>;
@@ -22,6 +22,23 @@ export default (appInfo: EggAppInfo) => {
             ARTICLE_REF: 'master'
         }
     };
+
+    config.onerror = {
+        json(err: any, ctx: Context) {
+            ctx.logger.error(err);
+            ctx.type = 'json';
+            ctx.body = {
+                success: false,
+                code: err.status || err.statusCode,
+                msg: err.message,
+                err
+            };
+        }
+    };
+
+    config.middleware = [
+        'respones',
+    ];
 
     // the return config will combines to EggAppConfig
     return {
