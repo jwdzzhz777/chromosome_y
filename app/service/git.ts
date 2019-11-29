@@ -13,7 +13,7 @@ export default class GithubService extends Service {
         files: GitArticleObjectType[]
     }> {
         let { BLOG_REPOSITORY, ARTICLES_PATH, ARTICLE_REF, ARTICLE_LABEL } = this.config.github;
-        /** 先拿到文章文件的信息 */
+        /** 拿到全部文章文件的信息 */
         let {
             viewer: {
                 id: assigneeId,
@@ -55,8 +55,35 @@ export default class GithubService extends Service {
 
         return { assigneeId, repositoryId, labelId, files };
     }
-    async getArticle() {
+    /**
+     * 通过 oid 获得文件的内容
+     * @param  {string}  oid  文件的 objectId
+     * @return     文件的内容
+     */
+    async getArticleContext(oid: string) {
+        let { BLOG_REPOSITORY } = this.config.github;
+        /** 拿到文件的内容 */
+        let { viewer: { repository: { article: { text } } } } = await this.ctx.helper.graph({
+            query: `
+                query($name_of_repository: String!, $oid: GitObjectID!) {
+                    viewer {
+                        repository (name: $name_of_repository) {
+                            article: object (oid: $oid) {
+                                ... on Blob {
+                                    text
+                                }
+                            }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                'name_of_repository': BLOG_REPOSITORY,
+                oid
+            }
+        });
 
+        return text;
     }
     /**
      * 创建一个 Issue
@@ -140,56 +167,6 @@ export default class GithubService extends Service {
 
         return new Date(pushedDate);
     }
-    async getIssues() {
-        let data = await this.ctx.helper.graph({
-            query: `
-                query($name_of_repository: String!) {
-                    viewer {
-                        repository (name: $name_of_repository) {
-                            issues (labels: ["article"], first: 10) {
-                                nodes {
-                                    id
-                                    title
-                                    publishedAt
-                                }
-                            }
-                        }
-                    }
-                }
-            `,
-            variables: {
-                'name_of_repository': this.config.github.BLOG_REPOSITORY,
-            }
-        });
-
-        return data;
-    }
-    async getBlogLabels() {
-        let data = await this.ctx.helper.graph({
-            query: `
-                query($name_of_repository: String!) {
-                    viewer {
-                        repository (name: $name_of_repository) {
-                            labels (first: 10, query: "article") {
-                                nodes {
-                                    issues (first: 10) {
-                                        nodes {
-                                            title
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            `,
-            variables: {
-                'name_of_repository': this.config.github.BLOG_REPOSITORY
-            }
-        });
-
-        return data;
-    }
     async associate(fileName: string, number: number) {
         let { ARTICLES_PATH, ARTICLE_REF } = this.config.github;
 
@@ -238,11 +215,12 @@ export default class GithubService extends Service {
             attributes: [ 'id' ],
             raw: true
         });
+
         /*
         当都没有关联才可以进行关联
         正常情况下不会出现一个关联一个没有关联
          */
-        if (fileData === issueData === null) {
+        if (fileData === null && issueData === null) {
             /** 拿到文件最后提交时间 */
             let date = await this.getLastCommitDate(fileName);
 
