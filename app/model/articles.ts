@@ -10,12 +10,7 @@ export default (app: Application) => {
         'articles',
         {
             ...defaultAttr,
-            oid: {
-                type: Sequelize.UUID,
-                unique: true,
-                allowNull: false,
-                defaultValue: Sequelize.UUIDV4,
-            },
+            oid: Sequelize.STRING,
             issueId: {
                 type: Sequelize.UUID,
                 unique: true,
