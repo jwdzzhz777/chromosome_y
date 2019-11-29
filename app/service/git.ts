@@ -167,10 +167,15 @@ export default class GithubService extends Service {
 
         return new Date(pushedDate);
     }
+    /**
+     * 将文章和 Issue 关联起来
+     * @param  fileName 文章的文件名字
+     * @param  number   issue number
+     */
     async associate(fileName: string, number: number) {
         let { ARTICLES_PATH, ARTICLE_REF } = this.config.github;
 
-        // 先通过fileName获取 oid
+        // 先通过fileName获取 oid 并且通过number 获取 issue 的标题
         // 自己处理报错
         let result = await this.ctx.helper.graph({
             query: `
@@ -223,7 +228,7 @@ export default class GithubService extends Service {
         if (fileData === null && issueData === null) {
             /** 拿到文件最后提交时间 */
             let date = await this.getLastCommitDate(fileName);
-
+            /** 将关系存起来 */
             await this.ctx.model.Articles.create({
                 oid: article.oid,
                 issueId: number,
