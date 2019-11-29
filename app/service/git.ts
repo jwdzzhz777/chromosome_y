@@ -88,41 +88,39 @@ export default class GithubService extends Service {
     /**
      * 创建一个 Issue
      * @param  {object} input        变异的内容
-     * @param  {string} input.assigneeIds  指派给谁(id) 当然肯定是我自己
+     * @param  {string[]} input.assigneeIds  指派给谁(id) 当然肯定是我自己
      * @param  {string} input.body         issue 内容
      * @param  {string[]} input.labelIds     标签 id 代表 article 的标签肯定要加
      * @param  {string[]} input.projectIds   暂时不需要 但是必填
      * @param  {string} input.repositoryId 所在仓库的id
      * @param  {string} input.title        标题
-     * @return              创建好的 Issue id
+     * @return              创建好的 Issue number
      */
     async createIssue (input: {
-        assigneeIds: string,
+        assigneeIds: string[],
         body: string,
         labelIds: string[],
         projectIds: string[],
         repositoryId: string,
         title: string
-    }) {
-        let data = await this.ctx.helper.graph({
-            mutation: `
-                createIssue(input:{
-                    assigneeIds: $assigneeIds!,
-                    body: $body,
-                    labelIds: $labelIds!,
-                    projectIds: $projectIds!,
-                    repositoryId: $repositoryId!,
-                    title: $title
-                }) {
-                    issue {
-                        id
+    }): Promise<number> {
+        let { createIssue: { issue: { number } } } = await this.ctx.helper.graph({
+            query: `
+                mutation($input: CreateIssueInput!) {
+                    createIssue(input: $input) {
+                        issue {
+                            id
+                            number
+                        }
                     }
                 }
             `,
-            variables: input
+            variables: {
+                input
+            }
         });
 
-        return data;
+        return number;
     }
 
     async updateIssue () {
