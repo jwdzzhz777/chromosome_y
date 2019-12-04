@@ -39,6 +39,9 @@ export default class GithubService extends Service {
                                         oid
                                         name
                                         type
+                                        object {
+                                            id
+                                        }
                                     }
                                 }
                             }
@@ -103,8 +106,8 @@ export default class GithubService extends Service {
         projectIds: string[],
         repositoryId: string,
         title: string
-    }): Promise<number> {
-        let { createIssue: { issue: { number } } } = await this.ctx.helper.graph({
+    }): Promise<{number: number, id: string}> {
+        let { createIssue: { issue: { number, id } } } = await this.ctx.helper.graph({
             query: `
                 mutation($input: CreateIssueInput!) {
                     createIssue(input: $input) {
@@ -120,11 +123,65 @@ export default class GithubService extends Service {
             }
         });
 
-        return number;
+        return { number, id };
     }
 
-    async updateIssue () {
+    async updateIssue (body: string, number: number) {
+        /** 先拿到 issue */
+        let { viewer: { repository: { issue } } } = await this.ctx.helper.graph({
+            query: `
+                query($name_of_repository: String!, $number: Int!) {
+                    viewer {
+                        repository (name: $name_of_repository) {
+                            issue (number: $number) {
+                                id
+                                labels(first: 10) {
+                                    nodes {
+                                        id
+                                    }
+                                }
+                                assignees(first: 10) {
+                                    nodes {
+                                        id
+                                    }
+                                }
+                                projectCards(first: 10) {
+                                    nodes {
+                                        id
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                'name_of_repository': this.config.github.BLOG_REPOSITORY,
+                number
+            }
+        });
 
+        const idMap = (item: {id: string}) => item.id;
+        await this.ctx.helper.graph({
+            query: `
+                mutation($input: UpdateIssueInput!) {
+                    updateIssue(input: $input) {
+                        issue {
+                            id
+                        }
+                    }
+                }
+            `,
+            variables: {
+                input: {
+                    assigneeIds: issue.assignees.nodes.map(idMap),
+                    labelIds: issue.labels.nodes.map(idMap),
+                    projectIds: issue.projectCards.nodes.map(idMap),
+                    id: issue.id,
+                    body
+                }
+            }
+        });
     }
 
     async getLastCommitDate(fileName: string): Promise<Date> {
@@ -205,16 +262,16 @@ export default class GithubService extends Service {
         if (!issue) throw new InternalServerError('Issue不存在');
         if (!article) throw new InternalServerError('article不存在');
 
-        // 通过 oid 查找数据库是否有记录该 oid 的东西
+        // 通过 fileName 查找数据库是否有记录该 fileName 的东西
         let fileData = await this.ctx.model.Articles.findOne({
-            where: { oid: article.oid },
+            where: { fileName },
             attributes: [ 'id' ],
             raw: true
         });
 
-        // 通过 issueId 查找数据库是否有记录该 issueId 的东西
+        // 通过 issueNumber 查找数据库是否有记录该 issueNumber 的东西
         let issueData = await this.ctx.model.Articles.findOne({
-            where: { issueId: number },
+            where: { issueNumber: number },
             attributes: [ 'id' ],
             raw: true
         });
@@ -228,8 +285,10 @@ export default class GithubService extends Service {
             let date = await this.getLastCommitDate(fileName);
             /** 将关系存起来 */
             await this.ctx.model.Articles.create({
+                fileName,
                 oid: article.oid,
-                issueId: number,
+                issueId: issue.id,
+                issueNumber: number,
                 title: issue.title,
                 publishedAt: date,
                 issueUpdatedAt: date

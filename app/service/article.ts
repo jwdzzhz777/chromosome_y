@@ -9,21 +9,21 @@ export default class MainService extends Service {
             if (name !== 'test.md') continue;
             /** 先获取最近一次提交时间 */
             let commitDate = await this.service.git.getLastCommitDate(name);
-
-            // 通过 oid 查找数据库是否有记录该 oid 的东西
-            let fileData = await this.ctx.model.Articles.findOne({
-                where: { oid },
-                attributes: [ 'id' ],
+            // 通过 fileName 查找数据库是否有记录该 file 的东西
+            let fileData: any = await this.ctx.model.Articles.findOne({
+                where: { fileName: name },
+                attributes: [ 'id', 'issueUpdatedAt', 'issueNumber' ],
                 raw: true
             });
 
             /** 不存在就创建一个 Issue */
             if (!fileData) {
+                if (1) return;
                 // 先拿到文章内容
                 let text = await this.service.git.getArticleContext(oid);
                 /** 截取 title */
                 let title = text.split('\n')[0].substr(2);
-                let issueNumber = await this.service.git.createIssue({
+                let {number: issueNumber, id} = await this.service.git.createIssue({
                     assigneeIds: [assigneeId],
                     repositoryId,
                     labelIds: [labelId],
@@ -31,16 +31,42 @@ export default class MainService extends Service {
                     title,
                     body: text
                 });
+                this.logger.info('---------创建 Issue---------');
+                this.logger.info({
+                    issueNumber,
+                    issueId: id
+                });
+                this.logger.info('---------创建 Issue---------');
 
-                await this.ctx.model.Articles.create({
+                return await this.ctx.model.Articles.create({
+                    fileName: name,
                     oid,
-                    issueId: issueNumber,
+                    issueId: id,
+                    issueNumber: issueNumber,
                     title: title,
                     publishedAt: commitDate,
                     issueUpdatedAt: commitDate
                 });
+            } else if (+commitDate > +fileData.issueUpdatedAt){
+                /** 提交时间大于更新时间的话就更新 issue */
+                // 先拿到文章内容
+                let text = await this.service.git.getArticleContext(oid);
 
-                return;
+                this.logger.info('--------- 更新 Issue ---------');
+
+                await this.service.git.updateIssue(text, fileData.issueNumber);
+                /*
+                    需要更新
+                    commitDate： 用户判断是否需要更新，
+                    oid: 文件的 oid 是会随着提交而变化所以要一直保持最新
+                    issueId、number: issue 的 id和numnber 是不会变的，不需要更新
+                 */
+                await this.ctx.model.Articles.update({
+                    issueUpdatedAt: commitDate,
+                    oid
+                }, {
+                    where: { fileName: name }
+                });
             }
         }
     }
