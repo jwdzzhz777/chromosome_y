@@ -8,7 +8,7 @@ export default class MainService extends Service {
             /** 测试用！！！ */
             if (name !== 'test.md') continue;
             /** 先获取最近一次提交时间 */
-            let commitDate = await this.service.git.getLastCommitDate(name);
+            let [commitDate, createTime] = await this.service.git.getLastAndFirstCommitDate(name);
             // 通过 fileName 查找数据库是否有记录该 file 的东西
             let fileData: any = await this.ctx.model.Articles.findOne({
                 where: { fileName: name },
@@ -44,7 +44,7 @@ export default class MainService extends Service {
                     issueId: id,
                     issueNumber: issueNumber,
                     title: title,
-                    publishedAt: commitDate,
+                    publishedAt: createTime,
                     issueUpdatedAt: commitDate
                 });
             } else if (+commitDate > +fileData.issueUpdatedAt){

@@ -185,14 +185,14 @@ export default class GithubService extends Service {
         });
     }
 
-    async getLastCommitDate(fileName: string): Promise<Date> {
+    async getLastAndFirstCommitDate(fileName: string): Promise<[Date, Date]> {
         let { BLOG_REPOSITORY, ARTICLES_PATH } = this.config.github;
 
         let {
-            viewer: { repository: { defaultBranchRef: { target: { history: {
-                    edges: [{ node: { pushedDate } }]
-                } } } }
-            }
+            viewer: { repository: { defaultBranchRef: { target: {
+                history: { edges: [{ node: { pushedDate: lastPushedDate } }] },
+                last: { pageInfo: { endCursor } }
+            } } } }
         } = await this.ctx.helper.graph({
             query: `
                 query($name_of_repository: String!, $path: String!) {
@@ -208,6 +208,11 @@ export default class GithubService extends Service {
                                                 }
                                             }
                                         }
+                                        last: history(path: $path) {
+                                            pageInfo {
+                                                endCursor
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -221,7 +226,41 @@ export default class GithubService extends Service {
             }
         });
 
-        return new Date(pushedDate);
+        /** 通过 end游标获取第一次提交 */
+        let {
+            viewer: { repository: { defaultBranchRef: { target: { history: {
+                edges: [{ node: { pushedDate: firstPushedDate } }]
+            } } } } }
+        } = await this.ctx.helper.graph({
+            query: `
+                query($name_of_repository: String!, $path: String!, $endCursor: String!) {
+                    viewer {
+                        repository (name: $name_of_repository) {
+                            defaultBranchRef {
+                                target {
+                                    ... on Commit {
+                                        history(last: 1, path: $path, before: $endCursor) {
+                                            edges {
+                                                node {
+                                                    pushedDate
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                'name_of_repository': BLOG_REPOSITORY,
+                path: `${ARTICLES_PATH}/${fileName}`,
+                endCursor
+            }
+        });
+
+        return [new Date(lastPushedDate), new Date(firstPushedDate)];
     }
     /**
      * 将文章和 Issue 关联起来
@@ -283,7 +322,7 @@ export default class GithubService extends Service {
          */
         if (fileData === null && issueData === null) {
             /** 拿到文件最后提交时间 */
-            let date = await this.getLastCommitDate(fileName);
+            let [last, first] = await this.getLastAndFirstCommitDate(fileName);
             /** 将关系存起来 */
             await this.ctx.model.Articles.create({
                 fileName,
@@ -291,8 +330,8 @@ export default class GithubService extends Service {
                 issueId: issue.id,
                 issueNumber: number,
                 title: issue.title,
-                publishedAt: date,
-                issueUpdatedAt: date
+                publishedAt: first,
+                issueUpdatedAt: last
             });
         }
     }
@@ -302,13 +341,14 @@ export default class GithubService extends Service {
      * @return        id
      */
     async getIssueByNumber(number: number) {
-        let { viewer: { repository: { issue: { id } } } } = await this.ctx.helper.graph({
+        let { viewer: { repository: { issue } } } = await this.ctx.helper.graph({
             query: `
-                query($name_of_repository: String!, $number: Number!) {
+                query($name_of_repository: String!, $number: Int!) {
                     viewer {
                         repository (name: $name_of_repository) {
                             issue (number: $number) {
                                 id
+                                body
                             }
                         }
                     }
@@ -320,6 +360,6 @@ export default class GithubService extends Service {
             }
         });
 
-        return id;
+        return issue;
     }
 }
