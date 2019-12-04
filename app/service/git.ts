@@ -126,7 +126,7 @@ export default class GithubService extends Service {
         return { number, id };
     }
 
-    async updateIssue (body: string, number: number) {
+    async updateIssue (body: string, title: string, number: number) {
         /** 先拿到 issue */
         let { viewer: { repository: { issue } } } = await this.ctx.helper.graph({
             query: `
@@ -178,6 +178,7 @@ export default class GithubService extends Service {
                     labelIds: issue.labels.nodes.map(idMap),
                     projectIds: issue.projectCards.nodes.map(idMap),
                     id: issue.id,
+                    title,
                     body
                 }
             }

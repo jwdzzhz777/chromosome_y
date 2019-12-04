@@ -51,10 +51,11 @@ export default class MainService extends Service {
                 /** 提交时间大于更新时间的话就更新 issue */
                 // 先拿到文章内容
                 let text = await this.service.git.getArticleContext(oid);
+                let title = text.split('\n')[0].substr(2);
 
                 this.logger.info('--------- 更新 Issue ---------');
 
-                await this.service.git.updateIssue(text, fileData.issueNumber);
+                await this.service.git.updateIssue(text, title, fileData.issueNumber);
                 /*
                     需要更新
                     commitDate： 用户判断是否需要更新，
@@ -63,6 +64,7 @@ export default class MainService extends Service {
                  */
                 await this.ctx.model.Articles.update({
                     issueUpdatedAt: commitDate,
+                    title,
                     oid
                 }, {
                     where: { fileName: name }
