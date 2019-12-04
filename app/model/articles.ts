@@ -10,6 +10,9 @@ export default (app: Application) => {
         'articles',
         {
             ...defaultAttr,
+            /** fileName 作为文件的唯一标示 */
+            fileName: Sequelize.STRING,
+            /** 随着提交 oid 会一直变化，不适合做唯一标示 */
             oid: Sequelize.STRING,
             issueId: {
                 type: Sequelize.UUID,
@@ -17,6 +20,8 @@ export default (app: Application) => {
                 allowNull: false,
                 defaultValue: Sequelize.UUIDV4,
             },
+            /** issueNumner 作为 Issue 的唯一表示 */
+            issueNumber: Sequelize.INTEGER,
             title: Sequelize.STRING,
             publishedAt: Sequelize.DATE,
             issueUpdatedAt: Sequelize.DATE,
