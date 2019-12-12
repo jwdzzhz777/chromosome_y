@@ -2,12 +2,14 @@
 // Do not modify this file!!!!!!!!!
 
 import 'egg';
+import ExportArticle from '../../../app/controller/article';
 import ExportGit from '../../../app/controller/git';
-import ExportUser from '../../../app/controller/user';
+import ExportTest from '../../../app/controller/test';
 
 declare module 'egg' {
   interface IController {
+    article: ExportArticle;
     git: ExportGit;
-    user: ExportUser;
+    test: ExportTest;
   }
 }

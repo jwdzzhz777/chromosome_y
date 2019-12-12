@@ -17,6 +17,8 @@ import 'egg-view';
 import 'egg-view-nunjucks';
 import '@jwdzzhz777/egg-genome';
 import 'egg-sequelize';
+import 'egg-validate';
+import 'egg-cors';
 import { EggPluginItem } from 'egg';
 declare module 'egg' {
   interface EggPlugin {
@@ -35,5 +37,7 @@ declare module 'egg' {
     nunjucks?: EggPluginItem;
     genome?: EggPluginItem;
     sequelize?: EggPluginItem;
+    validate?: EggPluginItem;
+    cors?: EggPluginItem;
   }
 }

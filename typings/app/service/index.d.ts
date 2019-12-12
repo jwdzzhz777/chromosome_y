@@ -2,12 +2,12 @@
 // Do not modify this file!!!!!!!!!
 
 import 'egg';
+import ExportArticle from '../../../app/service/article';
 import ExportGit from '../../../app/service/git';
-import ExportMain from '../../../app/service/main';
 
 declare module 'egg' {
   interface IService {
+    article: ExportArticle;
     git: ExportGit;
-    main: ExportMain;
   }
 }
