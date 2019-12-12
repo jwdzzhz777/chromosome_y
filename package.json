@@ -22,10 +22,11 @@
     "clean": "ets clean"
   },
   "dependencies": {
-    "@jwdzzhz777/egg-genome": "0.0.1-beta.121",
+    "@jwdzzhz777/egg-genome": "0.0.1-beta.123",
     "egg": "^2.6.1",
     "egg-scripts": "^2.6.0",
     "egg-sequelize": "^5.2.0",
+    "egg-validate": "^2.0.2",
     "egg-view-nunjucks": "^2.2.0",
     "mysql2": "^2.0.0"
   },
