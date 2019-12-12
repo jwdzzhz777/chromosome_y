@@ -24,6 +24,7 @@
   "dependencies": {
     "@jwdzzhz777/egg-genome": "0.0.1-beta.123",
     "egg": "^2.6.1",
+    "egg-cors": "^2.2.3",
     "egg-scripts": "^2.6.0",
     "egg-sequelize": "^5.2.0",
     "egg-validate": "^2.0.2",

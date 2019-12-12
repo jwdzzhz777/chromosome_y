@@ -3,7 +3,7 @@ import { EggAppConfig, PowerPartial } from 'egg';
 export default () => {
     const config: PowerPartial<EggAppConfig> = {};
 
-    config.sequelize={
+    config.sequelize = {
         dialect: 'mysql',
         username: 'root',
         password: 'password',
@@ -12,6 +12,11 @@ export default () => {
         database: 'blog',
     };
 
+    config.cors = {
+        origin: '*',
+        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS'
+    }
+
     return config;
-    
+
 };
