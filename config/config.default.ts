@@ -15,7 +15,7 @@ export default (appInfo: EggAppInfo) => {
         sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,
         github: {
             API: 'https://api.github.com/graphql',
-            ACCESS_TOKEN: 'fbae9028a5ddd44b7c8d629e074c21dbf1ba807a',
+            ACCESS_TOKEN: '',
             BLOG_REPOSITORY: 'blog',
             ARTICLES_PATH: 'articles',
             ARTICLE_LABEL: 'article',
@@ -40,9 +40,14 @@ export default (appInfo: EggAppInfo) => {
         'respones',
     ];
 
+    config.cors = {
+        origin: '*',
+        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS'
+    }
+
     // the return config will combines to EggAppConfig
     return {
         ...config,
-        ...bizConfig,
+        ...bizConfig
     };
 };

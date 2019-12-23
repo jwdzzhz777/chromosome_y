@@ -12,11 +12,6 @@ export default () => {
         database: 'blog',
     };
 
-    config.cors = {
-        origin: '*',
-        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS'
-    }
-
     return config;
 
 };
