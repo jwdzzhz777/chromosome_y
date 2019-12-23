@@ -39,7 +39,7 @@ export default {
         quite: boolean = false
     ) {
         const { ctx, config: { github } } = this;
-
+        console.info('gitlab', github.ACCESS_TOKEN);
         try {
             let { data: { data, errors, message }, status } = await ctx.curl(github.API, {
                 headers: {
