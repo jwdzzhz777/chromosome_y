@@ -8,8 +8,8 @@
     "declarations": true
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --title=egg-server-chromosome_y",
-    "stop": "egg-scripts stop --title=egg-server-chromosome_y",
+    "start": "egg-scripts start --daemon --title=blog_server",
+    "stop": "egg-scripts stop --title=blog_server",
     "dev": "egg-bin dev",
     "debug": "egg-bin debug",
     "test-local": "egg-bin test",
