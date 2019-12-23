@@ -6,7 +6,7 @@ export default class ArticleController extends Controller {
     @path('/api/article/owner')
     @desc('获取自己的信息')
     public async getViewer() {
-        let data = await this.ctx.helper.graph({
+        let { viewer } = await this.ctx.helper.graph({
             query: `
                 query {
                     viewer {
@@ -16,12 +16,16 @@ export default class ArticleController extends Controller {
                         email
                         bio
                         avatarUrl
+                        a_s: avatarUrl (size:100)
+                        a_m: avatarUrl (size:130)
+                        a_l: avatarUrl (size:160)
+                        avatarUrl
                     }
                 }
             `
         });
 
-        this.ctx.success(data);
+        this.ctx.success(viewer);
     }
     @path('/api/article/list')
     @desc('获取项目列表')
