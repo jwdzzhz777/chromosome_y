@@ -3,7 +3,7 @@ import { Api, path, desc, query } from '@jwdzzhz777/egg-genome';
 
 @Api
 export default class ArticleController extends Controller {
-    @path('/api/article/owner')
+    @path('/api/user/viewer')
     @desc('获取自己的信息')
     public async getViewer() {
         let { viewer } = await this.ctx.helper.graph({
