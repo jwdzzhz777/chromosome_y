@@ -1,29 +1,19 @@
 import { Controller } from 'egg';
-import { Api, path, desc, query } from '@jwdzzhz777/egg-genome';
+import { Api, path, desc } from '@jwdzzhz777/egg-genome';
 
 @Api
 export default class GitController extends Controller {
     @path('/api/user/viewer')
     @desc('获取自己的信息')
     public async getViewer() {
-        let { viewer } = await this.ctx.helper.graph({
-            query: `
-                query {
-                    viewer {
-                        id
-                        name
-                        login
-                        email
-                        bio
-                        avatarUrl
-                        a_s: avatarUrl (size:100)
-                        a_m: avatarUrl (size:130)
-                        a_l: avatarUrl (size:160)
-                        avatarUrl
-                    }
-                }
-            `
+        let viewer = await this.ctx.model.Users.findOne({
+            where: { login: 'jwdzzhz777' },
+            raw: true
         });
+
+        if (!viewer) {
+            viewer = await this.service.git.getMyInfoFromGit();
+        }
 
         this.ctx.success(viewer);
     }

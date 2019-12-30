@@ -1,7 +1,36 @@
 import { Service } from 'egg';
+import { createWriteStream } from 'fs';
 import { GitArticleObjectType } from '../types/git';
 
 export default class GithubService extends Service {
+    async getMyInfoFromGit() {
+        let { viewer } = await this.ctx.helper.graph({
+            query: `
+                query {
+                    viewer {
+                        id
+                        name
+                        login
+                        email
+                        bio
+                        avatarUrl
+                    }
+                }
+            `
+        });
+        let res = await this.ctx.curl(viewer.avatarUrl);
+
+        if (res.status === 200) {
+            /** 图片下载到本地 */
+            const type = res.headers['content-type'].split('/')[1];
+            let stream = createWriteStream(`app/public/avatar.${type}`);
+            stream.write(res.data);
+            viewer.avatarUrl = `public/avatar.${type}`;
+        }
+        await this.ctx.model.Users.upsert(viewer);
+
+        return viewer;
+    }
     /**
      * 获取所有文章的信息
      * @return 返回信息用于查找数据库对应记录或者创建一个新的 Issue
