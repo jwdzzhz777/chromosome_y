@@ -1,5 +1,4 @@
 import { Application } from 'egg';
-import * as Sequelize from 'sequelize';
 import { baseModelData } from '../lib/utils/sequelizeDefaultOpt';
 
 export default (app: Application) => {
