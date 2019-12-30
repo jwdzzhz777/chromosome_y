@@ -1,31 +1,42 @@
 import { Application } from 'egg';
+import * as Sequelize from 'sequelize';
 import { baseModelData } from '../lib/utils/sequelizeDefaultOpt';
 
 export default (app: Application) => {
-    const Sequelize = app.Sequelize;
+    const sequelize = app.Sequelize;
 
-    let [ defaultAttr, defaultOpt ]: any = baseModelData(Sequelize);
+    let [ defaultAttr, defaultOpt ]: any = baseModelData(sequelize);
 
     const Articles = app.model.define(
         'articles',
         {
             ...defaultAttr,
             /** fileName 作为文件的唯一标示 */
-            fileName: Sequelize.STRING,
+            fileName: sequelize.STRING,
             /** 随着提交 oid 会一直变化，不适合做唯一标示 */
-            oid: Sequelize.STRING,
+            oid: sequelize.STRING,
             issueId: {
-                type: Sequelize.UUID,
+                type: sequelize.UUID,
                 unique: true,
                 allowNull: false,
-                defaultValue: Sequelize.UUIDV4,
+                defaultValue: sequelize.UUIDV4,
             },
             /** issueNumner 作为 Issue 的唯一表示 */
-            issueNumber: Sequelize.INTEGER,
-            title: Sequelize.STRING,
-            publishedAt: Sequelize.DATE,
-            issueUpdatedAt: Sequelize.DATE,
-            img: Sequelize.STRING
+            issueNumber: sequelize.INTEGER,
+            title: sequelize.STRING,
+            publishedAt: {
+                type: sequelize.DATE,
+                get(this: any) {
+                    return +this.getDataValue('publishedAt');
+                }
+            },
+            issueUpdatedAt: {
+                type: sequelize.DATE,
+                get(this: any) {
+                    return +this.getDataValue('issueUpdatedAt');
+                }
+            },
+            img: sequelize.STRING
         },
         defaultOpt
     );
