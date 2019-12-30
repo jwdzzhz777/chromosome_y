@@ -3,3 +3,12 @@ export interface GitArticleObjectType {
     name: string;
     type: string;
 }
+
+export interface GitUserType {
+    id: string;
+    name: string;
+    login: string;
+    email: string;
+    bio: string;
+    avatarUrl: string;
+}
