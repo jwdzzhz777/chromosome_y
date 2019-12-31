@@ -18,7 +18,6 @@ export default class MainService extends Service {
 
             /** 不存在就创建一个 Issue */
             if (!fileData) {
-                if (1) return;
                 // 先拿到文章内容
                 let text = await this.service.git.getArticleContext(oid);
                 /** 截取 title */
