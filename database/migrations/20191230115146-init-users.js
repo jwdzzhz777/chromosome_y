@@ -14,7 +14,6 @@ module.exports = {
                     primaryKey: true,
                     allowNull: false
                 },
-                u_id: Sequelize.STRING,
                 name: Sequelize.STRING,
                 login: Sequelize.STRING,
                 email: Sequelize.STRING,
