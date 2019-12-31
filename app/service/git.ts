@@ -26,6 +26,8 @@ export default class GithubService extends Service {
             let stream = createWriteStream(`app/public/avatar.${type}`);
             stream.write(res.data);
             viewer.avatarUrl = `public/avatar.${type}`;
+        } else {
+            this.ctx.logger.error(res);
         }
         await this.ctx.model.Users.upsert(viewer);
 
