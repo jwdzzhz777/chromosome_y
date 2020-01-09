@@ -37,7 +37,7 @@ export default class MainService extends Service {
                 });
                 this.logger.info('---------创建 Issue---------');
 
-                return await this.ctx.model.Articles.create({
+                await this.ctx.model.Articles.create({
                     fileName: name,
                     oid,
                     issueId: id,
