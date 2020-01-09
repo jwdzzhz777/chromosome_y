@@ -1,4 +1,4 @@
-import { Subscription, Context } from 'egg';
+import { Subscription } from 'egg';
 
 export default class UpdateArticles extends Subscription {
     static get schedule() {
@@ -9,8 +9,8 @@ export default class UpdateArticles extends Subscription {
         };
     }
 
-    async subscribe(ctx: Context) {
-        ctx.logger.info('更新 github issue 定时器');
-        await ctx.service.article.autoBot();
+    async subscribe() {
+        this.ctx.logger.info('更新 github issue 定时器');
+        await this.ctx.service.article.autoBot();
     }
 }
