@@ -9,7 +9,11 @@ export default class MainService extends Service {
             /** 测试用！！！ */
             // if (name !== 'test.md') continue;
             /** 先获取最近一次提交时间 */
-            let [commitDate, createTime] = await this.service.git.getLastAndFirstCommitDate(name);
+            let fileCommitDate = await this.service.git.getLastAndFirstCommitDate(name);
+            // 取不到就跳过
+            if (fileCommitDate === null) continue;
+            let [commitDate, createTime] = fileCommitDate as Date[];
+
             // 通过 fileName 查找数据库是否有记录该 file 的东西
             let fileData: any = await this.ctx.model.Articles.findOne({
                 where: { fileName: name },
