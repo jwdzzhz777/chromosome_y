@@ -20,10 +20,10 @@ export default class GitController extends Controller {
     @path('/api/github/fetch')
     @desc('更新文章至issue 并关联')
     public async fetch() {
-        await this.service.article.autoBot();
-
+        this.service.article.autoBot();
+        
         this.ctx.success({
-            message: 'success'
+            message: '触发更新'
         });
     }
 }
