@@ -48,6 +48,7 @@ export default {
                 method: 'POST',
                 dataType: 'json',
                 contentType: 'json',
+                timeout: 10000,
                 data: JSON.stringify(params)
             });
 
