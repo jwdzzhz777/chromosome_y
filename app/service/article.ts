@@ -5,6 +5,7 @@ export default class MainService extends Service {
         let { assigneeId, repositoryId, labelId, files } = await this.service.git.getArticleList();
 
         for (let { oid, name} of files) {
+            this.logger.info(`fileName:${name}，fileId:${oid}!!!!!!!!!!!!!!!!!!!!!!`);
             /** 测试用！！！ */
             // if (name !== 'test.md') continue;
             /** 先获取最近一次提交时间 */
