@@ -15,7 +15,7 @@ export default (appInfo: EggAppInfo) => {
         sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,
         github: {
             API: 'https://api.github.com/graphql',
-            ACCESS_TOKEN: '',
+            ACCESS_TOKEN: '53c9b4981185b68b1bd77280ff1c3480c87e120a',
             BLOG_REPOSITORY: 'blog',
             ARTICLES_PATH: 'articles',
             ARTICLE_LABEL: 'article',

@@ -216,7 +216,7 @@ export default class GithubService extends Service {
         });
     }
 
-    async getLastAndFirstCommitDate(fileName: string): Promise<[Date, Date]> {
+    async getLastAndFirstCommitDate(fileName: string): Promise<[Date, Date] | undefined> {
         let { BLOG_REPOSITORY, ARTICLES_PATH } = this.config.github;
 
         let {
@@ -260,7 +260,7 @@ export default class GithubService extends Service {
         /** 通过 end游标获取第一次提交 */
         let {
             viewer: { repository: { defaultBranchRef: { target: { history: {
-                edges: [{ node: { pushedDate: firstPushedDate } }]
+                edges
             } } } } }
         } = await this.ctx.helper.graph({
             query: `
@@ -290,6 +290,13 @@ export default class GithubService extends Service {
                 endCursor
             }
         });
+
+        if (edges.length < 1) {
+            this.logger.error(`获取${fileName}的提交历史失败`);
+            return;
+        }
+
+        let [{ node: { pushedDate: firstPushedDate } }] = edges;
 
         return [new Date(lastPushedDate), new Date(firstPushedDate)];
     }
@@ -353,7 +360,11 @@ export default class GithubService extends Service {
          */
         if (fileData === null && issueData === null) {
             /** 拿到文件最后提交时间 */
-            let [last, first] = await this.getLastAndFirstCommitDate(fileName);
+            let dateList = await this.getLastAndFirstCommitDate(fileName);
+            if (!dateList) throw new InternalServerError('无法获取提交信息');
+            
+            let [last, first] = dateList as Date[];
+
             /** 将关系存起来 */
             await this.ctx.model.Articles.create({
                 fileName,
