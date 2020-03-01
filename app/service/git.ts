@@ -221,8 +221,9 @@ export default class GithubService extends Service {
 
         let {
             viewer: { repository: { defaultBranchRef: { target: {
-                history: { edges: [{ node: { pushedDate: lastPushedDate } }] },
-                last: { pageInfo: { endCursor } }
+                // history: { edges: [{ node: { pushedDate: lastPushedDate } }] },
+                // last: { pageInfo: { endCursor } }
+                history: { edges }
             } } } }
         } = await this.ctx.helper.graph({
             query: `
@@ -232,7 +233,7 @@ export default class GithubService extends Service {
                             defaultBranchRef {
                                 target {
                                     ... on Commit {
-                                        history(first: 1, path: $path) {
+                                        history(path: $path) {
                                             edges {
                                                 node {
                                                     pushedDate
@@ -258,47 +259,54 @@ export default class GithubService extends Service {
         });
 
         /** 通过 end游标获取第一次提交 */
-        let {
-            viewer: { repository: { defaultBranchRef: { target: { history: {
-                edges
-            } } } } }
-        } = await this.ctx.helper.graph({
-            query: `
-                query($name_of_repository: String!, $path: String!, $endCursor: String!) {
-                    viewer {
-                        repository (name: $name_of_repository) {
-                            defaultBranchRef {
-                                target {
-                                    ... on Commit {
-                                        history(last: 1, path: $path, before: $endCursor) {
-                                            edges {
-                                                node {
-                                                    pushedDate
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            `,
-            variables: {
-                'name_of_repository': BLOG_REPOSITORY,
-                path: `${ARTICLES_PATH}/${fileName}`,
-                endCursor
-            }
-        });
+        // let {
+        //     viewer: { repository: { defaultBranchRef: { target: { history: {
+        //         edges
+        //     } } } } }
+        // } = await this.ctx.helper.graph({
+        //     query: `
+        //         query($name_of_repository: String!, $path: String!, $endCursor: String!) {
+        //             viewer {
+        //                 repository (name: $name_of_repository) {
+        //                     defaultBranchRef {
+        //                         target {
+        //                             ... on Commit {
+        //                                 history(last: 1, path: $path, before: $endCursor) {
+        //                                     edges {
+        //                                         node {
+        //                                             pushedDate
+        //                                         }
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     `,
+        //     variables: {
+        //         'name_of_repository': BLOG_REPOSITORY,
+        //         path: `${ARTICLES_PATH}/${fileName}`,
+        //         endCursor
+        //     }
+        // });
+        //
+        // if (edges.length < 1) {
+        //     this.logger.error(`获取${fileName}的提交历史失败`);
+        //     return;
+        // }
+        //
+        // let [{ node: { pushedDate: firstPushedDate } }] = edges;
 
         if (edges.length < 1) {
             this.logger.error(`获取${fileName}的提交历史失败`);
             return;
         }
 
-        let [{ node: { pushedDate: firstPushedDate } }] = edges;
+        edges = edges.map(edge => edge.node.pushedDate);
 
-        return [new Date(lastPushedDate), new Date(firstPushedDate)];
+        return [new Date(edges[0]), new Date(edges[edges.length - 1])];
     }
     /**
      * 将文章和 Issue 关联起来
@@ -362,7 +370,7 @@ export default class GithubService extends Service {
             /** 拿到文件最后提交时间 */
             let dateList = await this.getLastAndFirstCommitDate(fileName);
             if (!dateList) throw new InternalServerError('无法获取提交信息');
-            
+
             let [last, first] = dateList as Date[];
 
             /** 将关系存起来 */
