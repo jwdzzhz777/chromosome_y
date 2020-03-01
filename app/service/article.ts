@@ -20,6 +20,7 @@ export default class MainService extends Service {
                 attributes: [ 'id', 'issueUpdatedAt', 'issueNumber' ],
                 raw: true
             });
+            this.logger.info(`commitDate:${commitDate}，issueUpdatedAt:${fileData.issueUpdatedAt}。`);
 
             /** 不存在就创建一个 Issue */
             if (!fileData) {
