@@ -304,9 +304,13 @@ export default class GithubService extends Service {
             return;
         }
 
-        edges = edges.map(edge => edge.node.pushedDate);
+        let commitlist: string[] = [];
 
-        return [new Date(edges[0]), new Date(edges[edges.length - 1])];
+        edges.forEach(({ node: { pushedDate } }) => {
+            pushedDate && commitlist.push(pushedDate);
+        });
+
+        return [new Date(commitlist[0]), new Date(commitlist[commitlist.length - 1])];
     }
     /**
      * 将文章和 Issue 关联起来
