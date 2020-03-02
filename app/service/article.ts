@@ -5,7 +5,9 @@ export default class MainService extends Service {
         let { assigneeId, repositoryId, labelId, files } = await this.service.git.getArticleList();
 
         for (let { oid, name} of files) {
-            this.logger.info(`fileName:${name}，fileId:${oid}!!!!!!!!!!!!!!!!!!!!!!`);
+            this.logger.info(`
+                fileName:${name}，fileId:${oid}
+            `);
             /** 测试用！！！ */
             // if (name !== 'test.md') continue;
             /** 先获取最近一次提交时间 */
@@ -20,7 +22,9 @@ export default class MainService extends Service {
                 attributes: [ 'id', 'issueUpdatedAt', 'issueNumber' ],
                 raw: true
             });
-            this.logger.info(`commitDate:${commitDate}，issueUpdatedAt:${fileData.issueUpdatedAt}。`);
+            this.logger.info(`
+                commitDate:${commitDate}，issueUpdatedAt:${fileData.issueUpdatedAt}。
+            `);
 
             /** 不存在就创建一个 Issue */
             if (!fileData) {
@@ -36,12 +40,13 @@ export default class MainService extends Service {
                     title,
                     body: text
                 });
-                this.logger.info('---------创建 Issue---------');
+                this.logger.info(`
+                    ---------创建 Issue---------
+                `);
                 this.logger.info({
                     issueNumber,
                     issueId: id
                 });
-                this.logger.info('---------创建 Issue---------');
 
                 await this.ctx.model.Articles.create({
                     fileName: name,
@@ -58,7 +63,9 @@ export default class MainService extends Service {
                 let text = await this.service.git.getArticleContext(oid);
                 let title = text.split('\n')[0].substr(2);
 
-                this.logger.info('--------- 更新 Issue ---------');
+                this.logger.info(`
+                    --------- 更新 Issue ---------
+                `);
 
                 await this.service.git.updateIssue(text, title, fileData.issueNumber);
                 /*
